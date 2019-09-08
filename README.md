@@ -1,5 +1,5 @@
 ## Set Solver
-This application automatically solves the game of Set. If you are not familiar with this game, take a look at their website (https://www.setgame.com) or Wikipedia (https://en.wikipedia.org/wiki/Set_(card_game).
+This application automatically solves the game of Set. If you are not familiar with this game, take a look at their website (https://www.setgame.com) or Wikipedia (https://en.wikipedia.org/wiki/Set_(card_game)).
  
  The project combines the strengths of computer vision and machine learning, using OpenCV and DL4J.
 
