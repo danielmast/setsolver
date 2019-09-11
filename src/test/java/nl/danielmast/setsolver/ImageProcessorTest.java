@@ -161,6 +161,79 @@ public class ImageProcessorTest {
         testGetCards(image, expectedCards);
     }
 
+    @Test
+    void testGetCardsTable7() {
+        Mat image = Imgcodecs.imread("src/test/resources/table7.jpg");
+
+        Set<Card> expectedCards = new HashSet<>(16);
+        expectedCards.add(new Card(THREE, PURPLE, OVAL, FULL));
+        expectedCards.add(new Card(THREE, RED, WAVE, FULL));
+        expectedCards.add(new Card(THREE, RED, RECTANGLE, FULL));
+        expectedCards.add(new Card(ONE, GREEN, WAVE, HALF));
+        expectedCards.add(new Card(THREE, RED, OVAL, HALF));
+        expectedCards.add(new Card(TWO, PURPLE, OVAL, FULL));
+        expectedCards.add(new Card(ONE, RED, RECTANGLE, HALF));
+        expectedCards.add(new Card(THREE, PURPLE, WAVE, EMPTY));
+        expectedCards.add(new Card(TWO, RED, RECTANGLE, FULL));
+        expectedCards.add(new Card(ONE, RED, OVAL, HALF));
+        expectedCards.add(new Card(TWO, RED, OVAL, EMPTY));
+        expectedCards.add(new Card(THREE, PURPLE, OVAL, HALF));
+        expectedCards.add(new Card(ONE, RED, RECTANGLE, FULL));
+        expectedCards.add(new Card(THREE, GREEN, RECTANGLE, FULL));
+        expectedCards.add(new Card(TWO, RED, WAVE, EMPTY));
+        expectedCards.add(new Card(TWO, RED, RECTANGLE, EMPTY));
+
+        testGetCards(image, expectedCards);
+    }
+
+    @Test
+    void testGetCardsTable8() {
+        Mat image = Imgcodecs.imread("src/test/resources/table8.jpg");
+
+        Set<Card> expectedCards = new HashSet<>(15);
+        expectedCards.add(new Card(TWO, RED, RECTANGLE, HALF));
+        expectedCards.add(new Card(TWO, GREEN, RECTANGLE, HALF));
+        expectedCards.add(new Card(ONE, RED, RECTANGLE, EMPTY));
+        expectedCards.add(new Card(THREE, RED, RECTANGLE, FULL));
+        expectedCards.add(new Card(ONE, GREEN, WAVE, HALF));
+        expectedCards.add(new Card(TWO, RED, WAVE, HALF));
+        expectedCards.add(new Card(ONE, PURPLE, WAVE, EMPTY));
+        expectedCards.add(new Card(THREE, GREEN, RECTANGLE, HALF));
+        expectedCards.add(new Card(TWO, GREEN, WAVE, HALF));
+        expectedCards.add(new Card(THREE, PURPLE, WAVE, FULL));
+        expectedCards.add(new Card(TWO, PURPLE, WAVE, FULL));
+        expectedCards.add(new Card(ONE, GREEN, RECTANGLE, HALF));
+        expectedCards.add(new Card(ONE, PURPLE, OVAL, HALF));
+        expectedCards.add(new Card(THREE, PURPLE, RECTANGLE, FULL));
+        expectedCards.add(new Card(TWO, GREEN, WAVE, FULL));
+
+        testGetCards(image, expectedCards);
+    }
+
+    @Test
+    void testGetCardsTable9() {
+        Mat image = Imgcodecs.imread("src/test/resources/table9.jpg");
+
+        Set<Card> expectedCards = new HashSet<>(15);
+        expectedCards.add(new Card(TWO, RED, RECTANGLE, HALF));
+        expectedCards.add(new Card(TWO, GREEN, RECTANGLE, HALF));
+        expectedCards.add(new Card(ONE, RED, RECTANGLE, EMPTY));
+        expectedCards.add(new Card(THREE, RED, RECTANGLE, FULL));
+        expectedCards.add(new Card(ONE, GREEN, WAVE, HALF));
+        expectedCards.add(new Card(TWO, RED, WAVE, HALF));
+        expectedCards.add(new Card(ONE, PURPLE, WAVE, EMPTY));
+        expectedCards.add(new Card(THREE, GREEN, RECTANGLE, HALF));
+        expectedCards.add(new Card(TWO, GREEN, WAVE, HALF));
+        expectedCards.add(new Card(THREE, PURPLE, WAVE, FULL));
+        expectedCards.add(new Card(TWO, PURPLE, WAVE, FULL));
+        expectedCards.add(new Card(ONE, GREEN, RECTANGLE, HALF));
+        expectedCards.add(new Card(ONE, PURPLE, OVAL, HALF));
+        expectedCards.add(new Card(THREE, PURPLE, RECTANGLE, FULL));
+        expectedCards.add(new Card(TWO, GREEN, WAVE, FULL));
+
+        testGetCards(image, expectedCards);
+    }
+
     private static void testGetCards(Mat image, Set<Card> expectedCards) {
         Map<Card, Point> result = ImageProcessor.getCards(image);
         Set<Card> cards = result.keySet();
