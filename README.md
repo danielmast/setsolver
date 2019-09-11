@@ -10,7 +10,7 @@ First, all individual card images are extracted from the input image. Then, a tr
 
 ![sets drawn on image](sets_drawn.jpg "Each colored triangle indicates a set")
 
-Not that on this image, there are in fact 10 different possible sets. Drawing all these lines would give a colorful but messy spiderweb. Therefore, the draw limit can be configured. 
+Note that on this image, there are in fact 10 different possible sets. Drawing all these lines would give a colorful but messy spiderweb. Therefore, the draw limit can be configured. 
 
 #### Purpose of the project
 If you are bad at this game, your annoying little brother is always faster than you, and you are willing to trade your integrity for sweet revenge, then this application is your servant. Make sure you hide the webcam well, and position the screen in such a way that only you can see it, to prevent getting caught!
