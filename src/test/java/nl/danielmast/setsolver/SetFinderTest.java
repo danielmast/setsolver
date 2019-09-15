@@ -57,4 +57,11 @@ class SetFinderTest {
             .map(expectedSet ->
                 () -> assertTrue(sets.contains(expectedSet), "Set not found: " + expectedSet.toString())));
     }
+
+    @Test
+    void findSetsNoCards() {
+        Set<Card> cards = new HashSet<>();
+        Set<CardSet> sets = SetFinder.findSets(cards);
+        assertEquals(0, sets.size(), "Wrong size");
+    }
 }
