@@ -14,7 +14,7 @@ import java.util.stream.IntStream;
 import static org.opencv.imgproc.Imgproc.*;
 
 public class ImageProcessor {
-    private static final int     RESIZE_WIDTH = 1280;
+    static final int            RESIZE_WIDTH = 1280;
     private static final int    BLUR_SIZE = 5;
     private static final int    CARD_THRESHOLD = 140;
     private static final double APPROXIMATION_FACTOR = 0.02;
