@@ -14,6 +14,7 @@ import org.nd4j.linalg.factory.Nd4j;
 import org.opencv.core.Mat;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -47,6 +48,10 @@ public class Classifier {
     }
 
     public List<Card> classify(List<Mat> images) {
+        if (images.size() == 0) {
+            return new ArrayList<>(0);
+        }
+
         List<INDArray> imageMatricesList = images.stream()
                 .map(i -> {
                     try {

@@ -138,6 +138,7 @@ public class ImageProcessor {
         // Filter the largest contours
         // This should remain only the contours of the cards
         return approximations.stream()
+                .filter(a -> a.size(0) == 4)
                 .filter(a -> contourArea(a) > maxArea * MIN_RATIO_OF_MAX_AREA)
                 .collect(Collectors.toList());
     }
