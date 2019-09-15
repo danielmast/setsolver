@@ -14,9 +14,9 @@ import java.util.stream.IntStream;
 import static org.opencv.imgproc.Imgproc.*;
 
 public class ImageProcessor {
-    public static final int     RESIZE_WIDTH = 1280;
+    private static final int     RESIZE_WIDTH = 1280;
     private static final int    BLUR_SIZE = 5;
-    private static final int    CARD_THRESHOLD = 170;
+    private static final int    CARD_THRESHOLD = 140;
     private static final double APPROXIMATION_FACTOR = 0.02;
     private static final double MIN_RATIO_OF_MAX_AREA = 0.3;
     private static final int    DRAW_LIMIT = 13;
@@ -79,8 +79,11 @@ public class ImageProcessor {
         Mat gray = new Mat();
         cvtColor(rgb, gray, COLOR_RGB2GRAY);
 
+        Mat normalized = new Mat();
+        Core.normalize(gray, normalized, 0.0, 255.0, Core.NORM_MINMAX);
+
         Mat blurred = new Mat();
-        blur(gray, blurred, new Size(BLUR_SIZE, BLUR_SIZE));
+        blur(normalized, blurred, new Size(BLUR_SIZE, BLUR_SIZE));
 
         Mat thresholded = new Mat();
         threshold(blurred, thresholded, CARD_THRESHOLD, 255, THRESH_BINARY);
