@@ -59,7 +59,7 @@ class SetFinderTest {
     }
 
     @Test
-    void findSetsNoCards() {
+    void testFindSetsEmptyInput() {
         Set<Card> cards = new HashSet<>();
         Set<CardSet> sets = SetFinder.findSets(cards);
         assertEquals(0, sets.size(), "Wrong size");
