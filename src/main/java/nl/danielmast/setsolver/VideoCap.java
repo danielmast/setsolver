@@ -44,8 +44,7 @@ public class VideoCap {
         System.out.println(String.format("%d Cards: %s", cards.size(), cards));
 
         Set<CardSet> sets = SetFinder.findSets(cards.keySet());
-        System.out.println(String.format("%d Sets:", sets.size()));
-        System.out.println(sets);
+        System.out.println(String.format("%d Sets: %s", sets.size(), sets));
 
         Mat result = ImageProcessor.drawSets(original, sets, cards);
         return mat2Img.getImage(result);
