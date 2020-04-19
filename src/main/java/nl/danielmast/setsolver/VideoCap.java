@@ -24,6 +24,8 @@ public class VideoCap {
     VideoCapture cap;
     Mat2Image mat2Img = new Mat2Image();
 
+    private FrameCombiner frameCombiner = new FrameCombiner();
+
     VideoCap(){
         cap = new VideoCapture();
         cap.open(0);
@@ -31,7 +33,11 @@ public class VideoCap {
         cap.set(Videoio.CAP_PROP_FRAME_HEIGHT, 960);
     }
 
-    BufferedImage getOneFrame() throws ClassificationException {
+    long minDiff = Long.MAX_VALUE;
+    long maxDiff = 0;
+    long totalDiff = 0;
+    long c = 1;
+    BufferedImage getOneFrame() {
         cap.read(mat2Img.mat);
 
         Mat original = mat2Img.mat;
@@ -39,9 +45,18 @@ public class VideoCap {
         Mat rgb = new Mat();
         cvtColor(original, rgb, COLOR_BGR2RGB);
 
-        Map<Card, Point> cards;
-        cards = ImageProcessor.getCards(rgb);
+        long start = System.currentTimeMillis();
+
+        frameCombiner.update(rgb);
+        Map<Card, Point> cards = frameCombiner.getCards();
         System.out.println(String.format("%d Cards: %s", cards.size(), cards));
+
+        long end = System.currentTimeMillis();
+        long diff = end - start;
+        minDiff = Math.min(minDiff, diff);
+        maxDiff = Math.max(maxDiff, diff);
+        totalDiff += diff;
+        System.out.println(String.format("Diff: %dms, Avg: %d, Min: %d, Max: %d", diff, totalDiff / c++, minDiff, maxDiff));
 
         Set<CardSet> sets = SetFinder.findSets(cards.keySet());
         System.out.println(String.format("%d Sets: %s", sets.size(), sets));

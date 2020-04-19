@@ -91,14 +91,6 @@ public class ImageProcessor {
 
         List<MatOfPoint> cardContours = getCardContours(thresholded);
 
-        String debugfile = "target/contours.jpg";
-        Mat debugImage = new Mat();
-        rgb.copyTo(debugImage);
-        IntStream.range(0, cardContours.size()).forEach(i ->
-            drawContours(debugImage, cardContours, i, new Scalar(255, 0, 0), 2));
-        cvtColor(debugImage, debugImage, COLOR_RGB2BGR);
-        Imgcodecs.imwrite(debugfile, debugImage);
-
         Map<Mat, Point> cardImagesAndPositions = cardContours.parallelStream()
                 .collect(Collectors.toMap(
                         c -> getCardImage(rgb, c),
@@ -180,22 +172,6 @@ public class ImageProcessor {
 
         Mat cardImage = new Mat();
         warpPerspective(image, cardImage, m, new Size(CARD_WIDTH, CARD_HEIGHT));
-
-        List<Mat> cardImages = new ArrayList<>(1);
-        cardImages.add(cardImage);
-
-        // @todo Temporary. Makes it easier to decide how each card is classified
-        List<Card> cards = Classifier.getInstance().classify(cardImages);
-
-        String filePath = "target/debug/" + cards.get(0).toFilename() + "";
-        while (new File(filePath).exists()) {
-            filePath += "_";
-        }
-        String debugfile = filePath;
-
-        Mat debugImage = new Mat();
-        cvtColor(cardImage, debugImage, COLOR_RGB2BGR);
-        Imgcodecs.imwrite(debugfile, debugImage);
 
         return cardImage;
     }

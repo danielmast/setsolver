@@ -13,7 +13,7 @@ public class SetFrame extends JFrame {
                 SetFrame frame = new SetFrame();
                 frame.setVisible(true);
             } catch (Exception e) {
-                e.printStackTrace();
+//                e.printStackTrace();
             }
         });
     }
@@ -26,29 +26,21 @@ public class SetFrame extends JFrame {
         setContentPane(contentPane);
         contentPane.setLayout(null);
 
-        new MyThread().start();
+        new PaintThread().start();
     }
 
     VideoCap videoCap = new VideoCap();
 
     public void paint(Graphics g){
         g = contentPane.getGraphics();
-        try {
-            g.drawImage(videoCap.getOneFrame(), 0, 0, this);
-        } catch (ClassificationException e) {
-            e.printStackTrace();
-        }
+        g.drawImage(videoCap.getOneFrame(), 0, 0, this);
     }
 
-    class MyThread extends Thread{
+    class PaintThread extends Thread{
         @Override
         public void run() {
             while (true) {
                 repaint();
-                try {
-                    Thread.sleep(10);
-                } catch (InterruptedException e) {
-                }
             }
         }
     }
