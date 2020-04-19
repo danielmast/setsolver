@@ -7,7 +7,7 @@ import org.opencv.core.Point;
 import java.util.*;
 
 public class FrameCombiner {
-    private static final int NUMBER_OF_FRAMES = 15;
+    private static final int NUMBER_OF_FRAMES = 5;
     private static final double THRESHOLD = 0.5;
 
     private Queue<Mat> frames = new LinkedList<>();

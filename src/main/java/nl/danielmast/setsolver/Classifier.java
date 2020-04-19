@@ -28,6 +28,8 @@ public class Classifier {
     private ComputationGraph model;
     private NativeImageLoader loader;
 
+    private static final double CERTAINTY_THRESHOLD = 0.67;
+
     private Classifier() {
         try {
             model = KerasModelImport.
@@ -71,8 +73,16 @@ public class Classifier {
         return IntStream.range(0, (int)predictions.size(0))
                 .boxed()
                 .map(predictions::getRow)
+                .filter(this::exceedsCertainty)
                 .map(this::predictionToCard)
                 .collect(Collectors.toList());
+    }
+
+    private boolean exceedsCertainty(INDArray prediction) {
+        prediction = prediction.reshape(4, 3);
+        INDArray predictionMax = prediction.amax(1);
+        double min = predictionMax.min().toDoubleVector()[0];
+        return min > CERTAINTY_THRESHOLD;
     }
 
     private Card predictionToCard(INDArray prediction) {
