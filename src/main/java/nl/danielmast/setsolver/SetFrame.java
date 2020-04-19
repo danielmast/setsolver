@@ -7,7 +7,7 @@ import java.awt.*;
 public class SetFrame extends JFrame {
     private JPanel contentPane;
 
-    public static void main(String[] args) {
+    public static void start() {
         EventQueue.invokeLater(() -> {
             try {
                 SetFrame frame = new SetFrame();
