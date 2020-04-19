@@ -7,6 +7,7 @@ import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.imgproc.Moments;
 
+import java.io.File;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -72,7 +73,7 @@ public class ImageProcessor {
         return drawn;
     }
 
-    public static Map<Card, Point> getCards(Mat image) {
+    public static Map<Card, Point> getCards(Mat image) throws ClassificationException {
         Mat rgb = new Mat();
         cvtColor(image, rgb, COLOR_BGR2RGB);
 
@@ -113,12 +114,17 @@ public class ImageProcessor {
 
         List<Card> cards = Classifier.getInstance().classify(cardImages);
 
-        /* TODO A duplicate key exception occurs when classification contains duplicate cards.
-            * We have to decide how to handle this.
-        */
-        return IntStream.range(0, cards.size())
+        try {
+            return IntStream.range(0, cards.size())
                 .boxed()
                 .collect(Collectors.toMap(cards::get, points::get));
+        } catch (IllegalStateException e) {
+            if (e.getMessage().contains("Duplicate key")) {
+                throw new ClassificationException("Classification contains duplicate cards", e);
+            } else {
+                throw e;
+            }
+        }
     }
 
     private static List<MatOfPoint> getCardContours(Mat thresholded) {
@@ -160,60 +166,14 @@ public class ImageProcessor {
         );
     }
 
-    // For creating debug images in getCard()
-    private static int cardCounter = 0;
     private static Mat getCardImage(Mat image, MatOfPoint contour) {
-        Rect boundingRect = boundingRect(contour);
-        int w = boundingRect.width;
-        int h = boundingRect.height;
-
-        MatOfPoint2f tempRect = new MatOfPoint2f();
-
-        double minX = Double.MAX_VALUE, minY = Double.MAX_VALUE;
-        double maxX = 0, maxY = 0;
-        for (Point p : contour.toArray()) {
-            if (p.x < minX) minX = p.x;
-            else if (p.x > maxX) maxX = p.x;
-            if (p.y < minY) minY = p.y;
-            else if (p.y > maxY) maxY = p.y;
-        }
-
-        Point[] tlTrBlBr = getTopLeftTopRightBottomLeftBottomRight(contour);
-        Point tl = tlTrBlBr[0];
-        Point tr = tlTrBlBr[1];
-        Point bl = tlTrBlBr[2];
-        Point br = tlTrBlBr[3];
-
-        if (w <= 0.8 * h) {
-            tempRect.fromArray(tl, tr, br, bl);
-        } else if (w >= 1.2 * h) {
-            tempRect.fromArray(bl, tl, tr, br);
-        } else if (w > 0.8 * h && w < 1.2 * h) {
-            if (contour.get(1, 0)[1] <= contour.get(3, 0)[1]) {
-                tempRect.fromArray(
-                        new Point(contour.get(1, 0)),
-                        new Point(contour.get(0, 0)),
-                        new Point(contour.get(3, 0)),
-                        new Point(contour.get(2, 0))
-                );
-            } else if (contour.get(1, 0)[1] > contour.get(3, 0)[1]) {
-                tempRect.fromArray(
-                        new Point(contour.get(0, 0)),
-                        new Point(contour.get(3, 0)),
-                        new Point(contour.get(2, 0)),
-                        new Point(contour.get(1, 0))
-                );
-            }
-        } else {
-            throw new RuntimeException("Unexpected dimensions");
-        }
-
+        MatOfPoint2f tempRect = getOrderedContour(contour);
         MatOfPoint2f dst = new MatOfPoint2f();
         dst.fromArray(
-                new Point(0, 0),
-                new Point(CARD_WIDTH-1, 0),
-                new Point(CARD_WIDTH-1, CARD_HEIGHT-1),
-                new Point(0, CARD_HEIGHT-1)
+            new Point(0, 0),
+            new Point(CARD_WIDTH-1, 0),
+            new Point(CARD_WIDTH-1, CARD_HEIGHT-1),
+            new Point(0, CARD_HEIGHT-1)
         );
 
         Mat m = getPerspectiveTransform(tempRect, dst);
@@ -221,7 +181,18 @@ public class ImageProcessor {
         Mat cardImage = new Mat();
         warpPerspective(image, cardImage, m, new Size(CARD_WIDTH, CARD_HEIGHT));
 
-        String debugfile = String.format("target/debug/card%d.jpg", cardCounter++);
+        List<Mat> cardImages = new ArrayList<>(1);
+        cardImages.add(cardImage);
+
+        // @todo Temporary. Makes it easier to decide how each card is classified
+        List<Card> cards = Classifier.getInstance().classify(cardImages);
+
+        String filePath = "target/debug/" + cards.get(0).toFilename() + "";
+        while (new File(filePath).exists()) {
+            filePath += "_";
+        }
+        String debugfile = filePath;
+
         Mat debugImage = new Mat();
         cvtColor(cardImage, debugImage, COLOR_RGB2BGR);
         Imgcodecs.imwrite(debugfile, debugImage);
@@ -229,34 +200,96 @@ public class ImageProcessor {
         return cardImage;
     }
 
-    private static Point[] getTopLeftTopRightBottomLeftBottomRight(MatOfPoint pts) {
-        Point[] result = new Point[4];
+    private static MatOfPoint2f getOrderedContour(MatOfPoint contour) {
+        Rect boundingRect = boundingRect(contour);
+        int w = boundingRect.width;
+        int h = boundingRect.height;
 
-        List<Point> sortedByX = pts.toList()
-                .stream()
-                .sorted(Comparator.comparing(p -> p.x))
-                .collect(Collectors.toList());
+        List<Point> sortedByX = sortByX(contour);
+        List<Point> sortedByY = sortByY(contour);
 
-        List<Point> sortedByY = pts.toList()
-                .stream()
-                .sorted(Comparator.comparing(p -> p.y))
-                .collect(Collectors.toList());
+        double ratio = (double)w / (double)h;
+        if (ratio > 1.35 || ratio < 1.0 / 1.35) {
+            Point minXPlusY = sortedByX.stream()
+                .min(Comparator.comparing(p -> p.x + p.y)).get();
+            Point maxXPlusY = sortedByX.stream()
+                .max(Comparator.comparing(p -> p.x + p.y)).get();
+            Point otherMinX = sortedByX.get(0).equals(minXPlusY) ? sortedByX.get(1) : sortedByX.get(0);
+            Point otherMaxX = sortedByX.get(3).equals(maxXPlusY) ? sortedByX.get(2) : sortedByX.get(3);
 
-        for (Point p : pts.toArray()) {
-            if (sortedByX.get(0).equals(p) || sortedByX.get(1).equals(p)) {
-                if (sortedByY.get(0).equals(p) || sortedByY.get(1).equals(p)) {
-                    result[0] = p; // top left
+            if (w < h) {
+                MatOfPoint2f flavourC = new MatOfPoint2f();
+                flavourC.fromArray(minXPlusY, otherMaxX, maxXPlusY, otherMinX);
+                return flavourC;
+            } else if (w > h) {
+                MatOfPoint2f flavourD = new MatOfPoint2f();
+                flavourD.fromArray(otherMinX, minXPlusY, otherMaxX, maxXPlusY);
+                return flavourD;
+            } else {
+                throw new RuntimeException("Unexpected dimensions");
+            }
+        } else {
+            double xOfYMin = sortedByY.get(0).x;
+            double xOfYMax = sortedByY.get(3).x;
+            double yOfXMin = sortedByX.get(0).y;
+            double yOfXMax = sortedByX.get(3).y;
+
+            MatOfPoint2f flavourA = new MatOfPoint2f();
+            flavourA.fromArray(sortedByX.get(0), sortedByY.get(0), sortedByX.get(3), sortedByY.get(3));
+            MatOfPoint2f flavourB = new MatOfPoint2f();
+            flavourB.fromArray(sortedByY.get(3), sortedByX.get(0), sortedByY.get(0), sortedByX.get(3));
+
+            if (xOfYMin < xOfYMax) {
+                if (yOfXMin < yOfXMax) {
+                    return flavourA;
+                } else if (yOfXMin > yOfXMax) {
+                    if (w < h) {
+                        return flavourB;
+                    } else if (w > h) {
+                        return flavourA;
+                    } else {
+                        throw new RuntimeException("Unexpected dimensions");
+                    }
                 } else {
-                    result[2] = p; // bottom left
+                    return flavourA;
+                }
+            } else if (xOfYMin > xOfYMax) {
+                if (yOfXMin < yOfXMax) {
+                    if (w < h) {
+                        return flavourA;
+                    } else if (w > h) {
+                        return flavourB;
+                    } else {
+                        throw new RuntimeException("Unexpected dimensions");
+                    }
+                } else if (yOfXMin > yOfXMax) {
+                    return flavourB;
+                } else {
+                    return flavourB;
                 }
             } else {
-                if (sortedByY.get(0).equals(p) || sortedByY.get(1).equals(p)) {
-                    result[1] = p; // top right
+                if (yOfXMin < yOfXMax) {
+                    return flavourA;
+                } else if (yOfXMin > yOfXMax) {
+                    return flavourB;
                 } else {
-                    result[3] = p; // bottom right
+                    throw new RuntimeException("Unexpected dimensions");
                 }
             }
         }
-        return result;
+    }
+
+    private static List<Point> sortByX(MatOfPoint pts) {
+        return pts.toList()
+            .stream()
+            .sorted(Comparator.comparing(p -> p.x))
+            .collect(Collectors.toList());
+    }
+
+    private static List<Point> sortByY(MatOfPoint pts) {
+        return pts.toList()
+            .stream()
+            .sorted(Comparator.comparing(p -> p.y))
+            .collect(Collectors.toList());
     }
 }

@@ -258,8 +258,32 @@ public class ImageProcessorTest {
         testGetCards(image, expectedCards);
     }
 
+    @Test
+    void testGetCardsTable11() {
+        Mat image = Imgcodecs.imread("src/test/resources/table11.jpg");
+
+        Set<Card> expectedCards = new HashSet<>(9);
+        expectedCards.add(new Card(TWO, PURPLE, OVAL, HALF));
+        expectedCards.add(new Card(THREE, GREEN, RECTANGLE, EMPTY));
+        expectedCards.add(new Card(TWO, GREEN, RECTANGLE, HALF));
+        expectedCards.add(new Card(TWO, RED, RECTANGLE, HALF));
+        expectedCards.add(new Card(THREE, PURPLE, OVAL, FULL));
+        expectedCards.add(new Card(THREE, PURPLE, RECTANGLE, EMPTY));
+        expectedCards.add(new Card(ONE, PURPLE, WAVE, HALF));
+        expectedCards.add(new Card(THREE, PURPLE, RECTANGLE, HALF));
+        expectedCards.add(new Card(THREE, RED, RECTANGLE, FULL));
+
+        testGetCards(image, expectedCards);
+    }
+
     private static void testGetCards(Mat image, Set<Card> expectedCards) {
-        Map<Card, Point> result = ImageProcessor.getCards(image);
+        Map<Card, Point> result = null;
+        try {
+            result = ImageProcessor.getCards(image);
+        } catch (ClassificationException e) {
+            e.printStackTrace();
+            fail();
+        }
         Set<Card> cards = result.keySet();
 
         assertEquals(expectedCards.size(), cards.size(), "Wrong size");

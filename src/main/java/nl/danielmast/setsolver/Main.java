@@ -25,7 +25,13 @@ public class Main {
         Mat original = Imgcodecs.imread(infile);
         Mat resized = ImageProcessor.resize(original, RESIZE_WIDTH);
 
-        Map<Card, Point> cards = ImageProcessor.getCards(resized);
+        Map<Card, Point> cards;
+        try {
+            cards = ImageProcessor.getCards(resized);
+        } catch (ClassificationException e) {
+            e.printStackTrace();
+            return;
+        }
         System.out.println(String.format("%d Cards: %s", cards.size(), cards));
 
         Set<CardSet> sets = SetFinder.findSets(cards.keySet());
