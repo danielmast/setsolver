@@ -1,17 +1,21 @@
 package nl.danielmast.setsolver;
 
+import nl.danielmast.setsolver.card.Card;
+import nl.danielmast.setsolver.card.CardSet;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
+import org.opencv.core.Point;
 import org.opencv.videoio.VideoCapture;
 import org.opencv.videoio.Videoio;
 
 import java.awt.image.BufferedImage;
+import java.util.Map;
+import java.util.Set;
 
+import static org.opencv.imgproc.Imgproc.COLOR_BGR2RGB;
 import static org.opencv.imgproc.Imgproc.cvtColor;
 
 public class VideoCap {
-
-    static final int RESIZE_WIDTH = 800;
 
     static{
         System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
@@ -23,8 +27,8 @@ public class VideoCap {
     VideoCap(){
         cap = new VideoCapture();
         cap.open(0);
-        boolean wset = cap.set(Videoio.CAP_PROP_FRAME_WIDTH, 1280);
-        boolean hset = cap.set(Videoio.CAP_PROP_FRAME_HEIGHT, 960);
+        cap.set(Videoio.CAP_PROP_FRAME_WIDTH, 1280);
+        cap.set(Videoio.CAP_PROP_FRAME_HEIGHT, 960);
     }
 
     BufferedImage getOneFrame() {
@@ -32,51 +36,23 @@ public class VideoCap {
 
         Mat original = mat2Img.mat;
 
-//        Mat resized = new Mat();
-//        if (original.width() > RESIZE_WIDTH) {
-//            long startResize = System.currentTimeMillis();
-//            resized = new Mat();
-//            Imgproc.resize(original, resized, new Size(
-//                    RESIZE_WIDTH,
-//                    original.rows() * RESIZE_WIDTH / original.cols()
-//            ));
-////            System.out.println("Time resize: " + (System.currentTimeMillis() - startResize) + " ms");
-//        } else {
-//            original.copyTo(resized);
-//        }
-//
-//        long startConvertToRGB = System.currentTimeMillis();
-//        Mat rgb = new Mat();
-//        cvtColor(resized, rgb, COLOR_BGR2RGB);
-////        System.out.println("Time convertToRGB: " + (System.currentTimeMillis() - startConvertToRGB) + " ms");
-//
-//        Mat result = resized;
-//        try {
-//            long start = System.currentTimeMillis();
-//
-//            Map<Card, Point> cards = ImageProcessor.getCards(rgb);
-//            System.out.println(String.format("%d Cards: %s", cards.size(), cards));
-//
-////            System.out.println("Time getCards: " + (System.currentTimeMillis() - startGetCards) + " ms");
-//
-////            System.out.println(String.format("%d Cards: %s", cards.size(), cards));
-//
-//            long startFindSets = System.currentTimeMillis();
-//            Set<CardSet> sets = SetFinder.findSets(cards.keySet());
-//            System.out.println(String.format("%d Sets:", sets.size()));
-////            System.out.println("Time findSets: " + (System.currentTimeMillis() - startFindSets) + " ms");
-//
-//            System.out.println(sets);
-//
-//            long startDrawSets = System.currentTimeMillis();
-//            result = ImageProcessor.drawSets(resized, sets, cards);
-////            System.out.println("Time one frame: " + (System.currentTimeMillis() - start) + " ms");
-//        } catch (Exception e) {
-//
-//            e.printStackTrace();
-//        }
+        Mat rgb = new Mat();
+        cvtColor(original, rgb, COLOR_BGR2RGB);
 
-//        return mat2Img.getImage(result);
-        return mat2Img.getImage(original);
+        Map<Card, Point> cards;
+        try {
+            cards = ImageProcessor.getCards(rgb);
+        } catch (ClassificationException e) {
+            e.printStackTrace();
+            return mat2Img.getImage(original);
+        }
+        System.out.println(String.format("%d Cards: %s", cards.size(), cards));
+
+        Set<CardSet> sets = SetFinder.findSets(cards.keySet());
+        System.out.println(String.format("%d Sets:", sets.size()));
+        System.out.println(sets);
+
+        Mat result = ImageProcessor.drawSets(original, sets, cards);
+        return mat2Img.getImage(result);
     }
 }

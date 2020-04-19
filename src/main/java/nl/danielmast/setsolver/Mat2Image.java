@@ -19,10 +19,6 @@ public class Mat2Image {
     public Mat2Image() {
     }
 
-    public Mat2Image(Mat mat) {
-        getSpace(mat);
-    }
-
     public void getSpace(Mat mat) {
         int type = 0;
         if (mat.channels() == 1) {
