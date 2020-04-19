@@ -33,7 +33,11 @@ public class SetFrame extends JFrame {
 
     public void paint(Graphics g){
         g = contentPane.getGraphics();
-        g.drawImage(videoCap.getOneFrame(), 0, 0, this);
+        try {
+            g.drawImage(videoCap.getOneFrame(), 0, 0, this);
+        } catch (ClassificationException e) {
+            e.printStackTrace();
+        }
     }
 
     class MyThread extends Thread{

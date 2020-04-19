@@ -31,7 +31,7 @@ public class VideoCap {
         cap.set(Videoio.CAP_PROP_FRAME_HEIGHT, 960);
     }
 
-    BufferedImage getOneFrame() {
+    BufferedImage getOneFrame() throws ClassificationException {
         cap.read(mat2Img.mat);
 
         Mat original = mat2Img.mat;
@@ -40,12 +40,7 @@ public class VideoCap {
         cvtColor(original, rgb, COLOR_BGR2RGB);
 
         Map<Card, Point> cards;
-        try {
-            cards = ImageProcessor.getCards(rgb);
-        } catch (ClassificationException e) {
-            e.printStackTrace();
-            return mat2Img.getImage(original);
-        }
+        cards = ImageProcessor.getCards(rgb);
         System.out.println(String.format("%d Cards: %s", cards.size(), cards));
 
         Set<CardSet> sets = SetFinder.findSets(cards.keySet());
